@@ -1,0 +1,44 @@
+[
+  {
+    "id": "1",
+    "user_id": "1",
+    "title": "Εισαγωγή στην Πληροφορική",
+    "description": "Το καλύτερο κουίζ για την εκμάθηση του μαθήματος εισαγωγή στην πληροφορική.",
+    "time": "15",
+    "questions_otp": 120,
+    "photo": "no-photo.png",
+    "status": "δημόσιο",
+    "start_date": null,
+    "start_time": null,
+    "end_date": null,
+    "end_time": null
+  },
+  {
+    "id": "2",
+    "user_id": "1",
+    "title": "Μαθηματικά",
+    "description": "Το καλύτερο κουίζ για την εκμάθηση μαθηματικών.",
+    "time": "15",
+    "questions_otp": 121,
+    "photo": "no-photo.png",
+    "status": "δημόσιο",
+    "start_date": null,
+    "start_time": null,
+    "end_date": null,
+    "end_time": null
+  },
+  {
+    "id": "3",
+    "user_id": "2",
+    "title": "Αγγλικά",
+    "description": "Το καλύτερο κουίζ για την εκμάθηση αγγλικών.",
+    "time": "15",
+    "questions_otp": 122,
+    "photo": "no-photo.png",
+    "status": "Ιδιωτικό",
+    "start_date": null,
+    "start_time": null,
+    "end_date": null,
+    "end_time": null
+  }
+]

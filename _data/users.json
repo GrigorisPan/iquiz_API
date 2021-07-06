@@ -1,0 +1,36 @@
+[
+  {
+    "username": "Γρηγόρης",
+    "password": "123",
+    "aem": "1055",
+    "activated": "1",
+    "type": "1",
+    "id": "1",
+    "last_name": "Παναγιωτοπουλος",
+    "first_name": "Γρηγόρης",
+    "act_code": "abcd",
+    "email": "greg@gmail.com",
+    "telephone": "256105555",
+    "academicid": "124568",
+    "public_comment": "Hello",
+    "private_comment": "Bye",
+    "departmentid": "5"
+  },
+  {
+    "username": "Άκης",
+    "password": "345",
+    "aem": "1005",
+    "activated": "5",
+    "type": "2",
+    "id": "2",
+    "last_name": "Μιχας",
+    "first_name": "Άκης",
+    "act_code": "abcd",
+    "email": "akis@gmail.com",
+    "telephone": "256105855",
+    "academicid": "1234568",
+    "public_comment": "Hello",
+    "private_comment": "Bye",
+    "departmentid": "10"
+  }
+]
