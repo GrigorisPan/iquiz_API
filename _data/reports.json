@@ -1,0 +1,17 @@
+[
+  {
+    "user_id": 1,
+    "quiz_id": 1,
+    "question_num": 3
+  },
+  {
+    "user_id": 1,
+    "quiz_id": 2,
+    "question_num": 6
+  },
+  {
+    "user_id": 2,
+    "quiz_id": 3,
+    "question_num": 15
+  }
+]

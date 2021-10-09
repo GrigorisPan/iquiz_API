@@ -2,12 +2,17 @@ const express = require('express');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const colors = require('colors');
+const cookieParser = require('cookie-parser');
 const errorHandler = require('./middleware/error');
 const sequelize = require('./config/database');
 
 //Import Models
 const Users = require('./models/User');
 const Quiz = require('./models/Quiz');
+const Statistic = require('./models/Statistic');
+const Reports = require('./models/Report');
+const DigitalClass = require('./models/DigitalClass');
+const SuggestQuiz = require('./models/SuggestQuiz');
 
 //Creating associations
 
@@ -17,9 +22,53 @@ Users.hasMany(Quiz, {
 });
 Quiz.belongsTo(Users, { foreignKey: 'user_id' });
 
+//quiz_statistic_ps
+Quiz.belongsToMany(Users, {
+  through: 'statistic_ps',
+  foreignKey: 'quiz_id',
+});
+Users.belongsToMany(Quiz, {
+  through: 'statistic_ps',
+  foreignKey: 'user_id',
+});
+
+//reports_ps
+Quiz.belongsToMany(Users, {
+  through: 'reports_ps',
+  foreignKey: 'quiz_id',
+});
+Users.belongsToMany(Quiz, {
+  through: 'reports_ps',
+  foreignKey: 'user_id',
+});
+
+//digital_class_ps
+Users.hasMany(DigitalClass, {
+  foreignKey: 'user_id',
+});
+DigitalClass.belongsTo(Users, { foreignKey: 'user_id' });
+
+//suggest_quiz_ps
+Quiz.belongsToMany(DigitalClass, {
+  through: 'suggest_quiz_ps',
+  foreignKey: 'quiz_id',
+});
+DigitalClass.belongsToMany(Quiz, {
+  through: 'suggest_quiz_ps',
+  foreignKey: 'class_id',
+});
+SuggestQuiz.belongsTo(Quiz, {
+  foreignKey: 'quiz_id',
+});
+
 //Route files
+const auth = require('./routes/auth');
 const quizzes = require('./routes/quizzes');
 const users = require('./routes/users');
+const statistics = require('./routes/statistics');
+const reports = require('./routes/reports');
+const digital_class = require('./routes/digital_class');
+const suggest_quiz = require('./routes/suggest_quiz');
 
 // Load env vars
 dotenv.config({ path: './config/config.env' });
@@ -29,14 +78,22 @@ const app = express();
 //Body parser
 app.use(express.json());
 
+//Cookie parser
+app.use(cookieParser());
+
 //Dev Logging Middleware
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
 //Mount routers
+app.use('/api/v1/auth/', auth);
 app.use('/api/v1/quizzes', quizzes);
 app.use('/api/v1/users', users);
+app.use('/api/v1/statistics', statistics);
+app.use('/api/v1/reports', reports);
+app.use('/api/v1/digitalclass', digital_class);
+app.use('/api/v1/suggestquiz', suggest_quiz);
 
 app.use(errorHandler);
 

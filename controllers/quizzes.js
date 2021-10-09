@@ -7,8 +7,12 @@ const Users = require('../models/User');
 //  @route    GET /api/v1/quizzes
 //  @access   Private
 exports.getQuizzes = asyncHandler(async (req, res, next) => {
-  const quizzes = await Quiz.findAll();
-  res.status(200).json({ success: true, count: quizzes.length, data: quizzes });
+  const quizzes = await Quiz.findAll({ include: [{ model: Users }] });
+  setTimeout(() => {
+    res
+      .status(200)
+      .json({ success: true, count: quizzes.length, data: quizzes });
+  }, 2000);
 });
 
 //  @desc     Get single quiz
@@ -16,7 +20,10 @@ exports.getQuizzes = asyncHandler(async (req, res, next) => {
 //  @access   Private
 exports.getQuiz = asyncHandler(async (req, res, next) => {
   const id = +req.params.id;
-  const quiz = await Quiz.findOne({ where: { id } });
+  const quiz = await Quiz.findOne({
+    where: { id },
+    include: [{ model: Users }],
+  });
 
   if (!quiz) {
     return next(
