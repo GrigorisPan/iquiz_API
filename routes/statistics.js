@@ -1,7 +1,15 @@
 const express = require('express');
-const { getTeacherStatistics } = require('../controllers/statistics');
+const {
+  getTeacherStatistics,
+  getScore,
+  getUsersInClass,
+} = require('../controllers/statistics');
 
 const router = express.Router();
 
-router.route('/:id').get(getTeacherStatistics);
+const { protect } = require('../middleware/auth');
+
+router.route('/:id').get(protect, getTeacherStatistics);
+router.route('/score/:id').get(protect, getScore);
+router.route('/users/:id').get(protect, getUsersInClass);
 module.exports = router;

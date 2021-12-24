@@ -15,7 +15,10 @@ const Quiz = sequelize.define('quiz_ps', {
   title: {
     type: Sequelize.STRING(25),
     allowNull: false,
-    unique: true,
+    unique: {
+      args: true,
+      msg: 'Ο τίτλος πρέπει να είναι μοναδικός',
+    },
     validate: {
       notEmpty: { msg: 'Ο τίτλος δεν πρέπει να είναι κενός' },
       notNull: { msg: 'Παρακαλώ εισάγετε τίτλο' },
@@ -41,7 +44,10 @@ const Quiz = sequelize.define('quiz_ps', {
   questions_otp: {
     type: Sequelize.INTEGER(10),
     allowNull: false,
-    unique: true,
+    unique: {
+      args: true,
+      msg: 'Otp πρέπει να είναι μοναδικός',
+    },
     validate: {
       isInt: { msg: 'Ο κωδικός otp πρέπει να είναι ακέραιος αριθμός' },
       notEmpty: { msg: 'Ο κωδικός otp δεν πρέπει να είναι κενός' },
@@ -50,7 +56,7 @@ const Quiz = sequelize.define('quiz_ps', {
   },
   photo: {
     type: Sequelize.STRING,
-    defaultValue: 'no-photo.jpg',
+    defaultValue: 'no-photo.png',
   },
   status: {
     type: Sequelize.STRING(10),

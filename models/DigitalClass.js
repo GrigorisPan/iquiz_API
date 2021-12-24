@@ -15,18 +15,21 @@ const DigitalClass = sequelize.define('digital_class_ps', {
   title: {
     type: Sequelize.STRING(25),
     allowNull: false,
-    unique: true,
+    unique: {
+      args: true,
+      msg: 'Ο τίτλος πρέπει να είναι μοναδικός',
+    },
     validate: {
-      notEmpty: { msg: 'Ο τίτλος δεν πρέπει να είναι κενός' },
-      notNull: { msg: 'Παρακαλώ εισάγετε τίτλο' },
+      notNull: { msg: ' Λάθος τίτλος' },
+      notEmpty: { msg: ' Εισάγετε τίτλο' },
     },
   },
   description: {
     type: Sequelize.STRING(300),
     allowNull: false,
     validate: {
-      notEmpty: { msg: 'Η περιγραφή δεν πρέπει να είναι κενή' },
-      notNull: { msg: 'Παρακαλώ εισάγετε περιγραφή' },
+      notNull: { msg: ' Λάθος περιγραφή' },
+      notEmpty: { msg: ' Εισάγετε περιγραφή ' },
     },
   },
 });

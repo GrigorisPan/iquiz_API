@@ -22,7 +22,8 @@ const errorHandler = (err, req, res, next) => {
     error = new ErrorResponse(message, 404);
   }
   if (err.name === 'SequelizeUniqueConstraintError') {
-    const message = 'Duplicate field value entered';
+    //console.log(error.errors[0].message);
+    const message = Object.values(err.errors).map((val) => val.message);
     error = new ErrorResponse(message, 400);
   }
   if (err.name === 'SyntaxError') {

@@ -1,7 +1,9 @@
+const path = require('path');
 const express = require('express');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const colors = require('colors');
+const fileupload = require('express-fileupload');
 const cookieParser = require('cookie-parser');
 const errorHandler = require('./middleware/error');
 const sequelize = require('./config/database');
@@ -31,6 +33,7 @@ Users.belongsToMany(Quiz, {
   through: 'statistic_ps',
   foreignKey: 'user_id',
 });
+Statistic.belongsTo(Users, { foreignKey: 'user_id' });
 
 //reports_ps
 Quiz.belongsToMany(Users, {
@@ -60,7 +63,15 @@ DigitalClass.belongsToMany(Quiz, {
 SuggestQuiz.belongsTo(Quiz, {
   foreignKey: 'quiz_id',
 });
-
+//users_inclass_ps
+Users.belongsToMany(DigitalClass, {
+  through: 'users_inclass_ps',
+  foreignKey: 'user_id',
+});
+DigitalClass.belongsToMany(Users, {
+  through: 'users_inclass_ps',
+  foreignKey: 'class_id',
+});
 //Route files
 const auth = require('./routes/auth');
 const quizzes = require('./routes/quizzes');
@@ -85,6 +96,12 @@ app.use(cookieParser());
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
+
+//File uploading
+app.use(fileupload());
+
+//Set static folder
+app.use(express.static(path.join(__dirname, 'public')));
 
 //Mount routers
 app.use('/api/v1/auth/', auth);

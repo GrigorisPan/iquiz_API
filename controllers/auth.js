@@ -24,7 +24,12 @@ exports.login = asyncHandler(async (req, res, next) => {
 
   //Validate email & password
   if (!email || !password) {
-    return next(new ErrorResponse('Please provide an email and password', 400));
+    return next(
+      new ErrorResponse(
+        'Παρακαλώ δώστε ένα email και έναν κωδικό πρόσβασης.',
+        400
+      )
+    );
   }
 
   //Check for user
@@ -36,14 +41,14 @@ exports.login = asyncHandler(async (req, res, next) => {
   });
 
   if (!user) {
-    return next(new ErrorResponse('Invalid credentials', 401));
+    return next(new ErrorResponse('Μη έγκυρα διαπιστευτήρια.', 401));
   }
 
   //Check if password matches
   const isMatch = await user.matchPassword(password);
 
   if (!isMatch) {
-    return next(new ErrorResponse('Invalid credentials', 401));
+    return next(new ErrorResponse('Μη έγκυρα διαπιστευτήρια.', 401));
   }
 
   sendTokenResponse(user, 200, res);
@@ -68,6 +73,9 @@ const sendTokenResponse = (user, statusCode, res) => {
 
   res.status(statusCode).cookie('token', token, options).json({
     success: true,
+    id: user.id,
+    username: user.username,
+    email: user.email,
     token,
   });
 };

@@ -43,13 +43,18 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 });
 
 //  @desc     Update user
-//  @route    POST /api/v1/users/:id
+//  @route    PUT /api/v1/users/:id
 //  @access   Private
 exports.updateUser = asyncHandler(async (req, res, next) => {
   const id = +req.params.id;
-  const { username, password, aem, activated, type, email } = req.body;
+  const { username, email, password } = req.body;
 
-  const user = await Users.findOne({ where: { id } });
+  const user = await Users.findOne({
+    where: { id },
+    attributes: {
+      include: ['password'],
+    },
+  });
 
   if (!user) {
     return next(
@@ -57,18 +62,22 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
     );
   }
 
-  user.username = username;
-  user.password = password;
-  user.aem = aem;
-  user.activated = activated;
-  user.type = type;
-  user.email = email;
+  console.log(user.password);
+  if (user) {
+    user.username = username || user.username;
+    user.email = email || user.email;
 
+    if (password) {
+      user.password = password;
+    }
+  }
   await user.save();
-
+  const updatedUser = await Users.findOne({
+    where: { id },
+  });
   res.status(201).json({
     success: true,
-    data: user,
+    data: updatedUser,
   });
 });
 

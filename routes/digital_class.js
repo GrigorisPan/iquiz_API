@@ -1,7 +1,16 @@
 const express = require('express');
-const { getDigitalClass } = require('../controllers/digital_class');
+const {
+  getDigitalClassList,
+  getDigitalClass,
+  createDigitalClass,
+} = require('../controllers/digital_class');
 
 const router = express.Router();
 
-router.route('/:id').get(getDigitalClass);
+const { protect } = require('../middleware/auth');
+
+router.route('/user').get(protect, getDigitalClassList);
+router.route('/:id').get(protect, getDigitalClass);
+router.route('/create').put(protect, createDigitalClass);
+
 module.exports = router;

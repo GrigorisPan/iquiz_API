@@ -9,16 +9,16 @@ const Users = sequelize.define(
       type: Sequelize.STRING(25),
       allowNull: false,
       validate: {
-        notNull: { msg: 'User must have a name' },
-        notEmpty: { msg: 'Username must not be empty.' },
+        notNull: { msg: ' Το όνομα χρήστη είναι υποχρεωτικό' },
+        notEmpty: { msg: ' Το όνομα χρήστη δεν πρέπει να είναι κενό' },
       },
     },
     password: {
       type: Sequelize.STRING(250),
       allowNull: false,
       validate: {
-        notNull: { msg: 'You must insert a passowrd' },
-        notEmpty: { msg: 'Password cant be empty.' },
+        notNull: { msg: ' Πρέπει να εισαγάγετε ένα passowrd' },
+        notEmpty: { msg: ' Ο κωδικός πρόσβασης δεν μπορεί να είναι κενός' },
       },
     },
     resetPasswordToken: {
@@ -37,8 +37,8 @@ const Users = sequelize.define(
       type: Sequelize.INTEGER(1),
       allowNull: false,
       validate: {
-        notNull: { msg: 'User must have a role' },
-        notEmpty: { msg: 'Role must not be empty.' },
+        notNull: { msg: ' Ο χρήστης πρέπει να ανήκει σε κάτηγορία' },
+        notEmpty: { msg: ' Η κατηγορία χρήστη δεν μπορεί να είναι κένη' },
       },
     },
     id: {
@@ -61,9 +61,9 @@ const Users = sequelize.define(
       defaultValue: 0,
       unique: true,
       validate: {
-        notNull: { msg: 'User must have a email' },
-        notEmpty: { msg: 'Email must not be empty.' },
-        isEmail: { msg: 'Must be a valid email address' },
+        notNull: { msg: ' Το email είναι υποχρεωτικό' },
+        notEmpty: { msg: ' Το email δεν πρέπει να είναι κενό' },
+        isEmail: { msg: ' Το email δεν είναι έγκυρο' },
       },
     },
     telephone: {
@@ -87,10 +87,11 @@ const Users = sequelize.define(
       attributes: { exclude: ['password'] },
     },
     hooks: {
-      beforeCreate: async function (User) {
-        console.log('Encrypt Passsword');
-        const salt = await bcrypt.genSalt(10);
-        User.password = await bcrypt.hash(User.password, salt);
+      beforeSave: async function (User, next) {
+        if (User.changed('password')) {
+          const salt = await bcrypt.genSalt(10);
+          User.password = await bcrypt.hash(User.password, salt);
+        }
       },
     },
   }
