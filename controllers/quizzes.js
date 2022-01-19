@@ -3,15 +3,25 @@ const asyncHandler = require('../middleware/async');
 const ErrorResponse = require('../utils/errorResponse');
 const Quiz = require('../models/Quiz');
 const Users = require('../models/User');
-
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 //  @desc     Get all public quizzes (Public)
 //  @route    GET /api/v1/quizzes
 //  @access   Private (Student & Teacher & Admin)
 exports.getQuizzes = asyncHandler(async (req, res, next) => {
+  const searched = decodeURI(req.query.searched)
+    ? {
+        title: {
+          [Op.regexp]: decodeURI(req.query.searched),
+        },
+      }
+    : {};
+
   const quizzes = await Quiz.findAll({
-    where: { status: 'public' },
+    where: { ...searched, status: 'public' },
     include: [{ model: Users }],
   });
+
   res.status(200).json({ success: true, count: quizzes.length, data: quizzes });
 });
 
@@ -138,7 +148,12 @@ exports.updateQuiz = asyncHandler(async (req, res, next) => {
         )
       );
     }
-    quiz.user_id = req.user.id;
+    if (type === 2) {
+      quiz.user_id = req.user.id;
+    } else {
+      quiz.user_id = quiz.user_id;
+    }
+
     quiz.title = title;
     quiz.description = description;
     quiz.time = time;

@@ -7,8 +7,14 @@ const Users = require('../models/User');
 //  @route    GET /api/v1/users
 //  @access   Private
 exports.getUsers = asyncHandler(async (req, res, next) => {
-  const users = await Users.findAll();
-  res.status(200).json({ success: true, count: users.length, data: users });
+  const type = +req.user.type;
+
+  if (type === 1) {
+    const users = await Users.findAll();
+    res.status(200).json({ success: true, count: users.length, data: users });
+  } else {
+    return next(new ErrorResponse(`User is not authorized to get users`, 401));
+  }
 });
 
 //  @desc     Get single user
@@ -46,8 +52,29 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 //  @route    PUT /api/v1/users/:id
 //  @access   Private
 exports.updateUser = asyncHandler(async (req, res, next) => {
-  const id = +req.params.id;
-  const { username, email, password } = req.body;
+  let id;
+  const user_type = +req.user.type;
+  let username;
+  let email;
+  let password;
+  let type;
+
+  if (user_type === 0 || user_type === 2) {
+    id = +req.user.id;
+    username = req.body.username;
+    email = req.body.email;
+    password = req.body.password;
+  } else if (user_type === 1) {
+    id = +req.params.id;
+    username = req.body.username;
+    email = req.body.email;
+    password = req.body.password;
+    type = +req.body.type;
+  } else {
+    return next(
+      new ErrorResponse(`User is not authorized to update user`, 401)
+    );
+  }
 
   const user = await Users.findOne({
     where: { id },
@@ -62,10 +89,17 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
     );
   }
 
-  console.log(user.password);
+  //console.log(user.password);
+
   if (user) {
-    user.username = username || user.username;
-    user.email = email || user.email;
+    if (user_type === 0 || user_type === 2) {
+      user.username = username || user.username;
+      user.email = email || user.email;
+    } else {
+      user.username = username || user.username;
+      user.email = email || user.email;
+      user.type = type || type === 0 ? type : user.type;
+    }
 
     if (password) {
       user.password = password;
@@ -86,16 +120,23 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
 //  @access   Private
 exports.deleteUser = asyncHandler(async (req, res, next) => {
   const id = +req.params.id;
+  const type = +req.user.type;
 
-  const user = await Users.findOne({
-    where: { id },
-  });
-  if (!user) {
+  if (type === 1) {
+    const user = await Users.findOne({
+      where: { id },
+    });
+    if (!user) {
+      return next(
+        new ErrorResponse(`User not found with id of ${req.params.id}`, 404)
+      );
+    }
+    await user.destroy();
+
+    res.status(200).json({ message: 'User deleted!' });
+  } else {
     return next(
-      new ErrorResponse(`User not found with id of ${req.params.id}`, 404)
+      new ErrorResponse(`User is not authorized to delete a user`, 401)
     );
   }
-  await user.destroy();
-
-  res.status(200).json({ message: 'User deleted!' });
 });

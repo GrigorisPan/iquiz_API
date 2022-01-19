@@ -4,11 +4,29 @@ const SuggestQuiz = require('../models/SuggestQuiz');
 const Quiz = require('../models/Quiz');
 const DigitalClass = require('../models/DigitalClass');
 
+//  @desc     Get all suggest quizzes
+//  @route    GET /api/v1/suggestquiz/all
+//  @access   Private (Admin)
+exports.getSuggestQuizAll = asyncHandler(async (req, res, next) => {
+  const type = +req.user.type;
+  if (type === 1) {
+    const suggestquiz = await SuggestQuiz.findAll({});
+
+    res
+      .status(200)
+      .json({ success: true, count: suggestquiz.length, data: suggestquiz });
+  } else {
+    return next(
+      new ErrorResponse(`User is not authorized to get suggest quizzes`, 401)
+    );
+  }
+});
+
 //  @desc     Get suggest quizzes by specific class id
 //  @route    GET /api/v1/suggestquiz/:id
 //  @access   Private (Teacher + Admin + Student)
 exports.getSuggestQuiz = asyncHandler(async (req, res, next) => {
-  id = +req.params.id;
+  const id = +req.params.id;
   const suggestquiz = await SuggestQuiz.findAll({
     where: { class_id: id },
     include: [{ model: Quiz }],
@@ -102,6 +120,32 @@ exports.addSuggestQuiz = asyncHandler(async (req, res, next) => {
   } else {
     return next(
       new ErrorResponse(`User is not authorized to create suggest quiz`, 401)
+    );
+  }
+});
+
+//  @desc     Delete  suggest quiz
+//  @route    Delete /api/v1/suggestquiz/:id
+//  @access   Private (Admin)
+exports.deleteSuggestQuiz = asyncHandler(async (req, res, next) => {
+  const type = +req.user.type;
+  if (type === 1) {
+    const ids = req.params.id.split('-');
+    const class_id = +ids[0];
+    const quiz_id = +ids[1];
+
+    const suggest = await SuggestQuiz.findOne({
+      where: { class_id, quiz_id },
+    });
+    if (!suggest) {
+      return next(new ErrorResponse(`Suggest quiz not found`, 404));
+    }
+    await suggest.destroy();
+
+    res.status(200).json({ message: 'Suggest quiz deleted!' });
+  } else {
+    return next(
+      new ErrorResponse(`User is not authorized to delete a suggest quiz`, 401)
     );
   }
 });

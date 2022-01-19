@@ -15,7 +15,7 @@ const Statistic = require('./models/Statistic');
 const Reports = require('./models/Report');
 const DigitalClass = require('./models/DigitalClass');
 const SuggestQuiz = require('./models/SuggestQuiz');
-
+const UsersInClass = require('./models/UsersInClass');
 //Creating associations
 
 //quiz_ps
@@ -63,6 +63,7 @@ DigitalClass.belongsToMany(Quiz, {
 SuggestQuiz.belongsTo(Quiz, {
   foreignKey: 'quiz_id',
 });
+
 //users_inclass_ps
 Users.belongsToMany(DigitalClass, {
   through: 'users_inclass_ps',
@@ -72,6 +73,13 @@ DigitalClass.belongsToMany(Users, {
   through: 'users_inclass_ps',
   foreignKey: 'class_id',
 });
+UsersInClass.belongsTo(Users, {
+  foreignKey: 'user_id',
+});
+UsersInClass.belongsTo(DigitalClass, {
+  foreignKey: 'class_id',
+});
+
 //Route files
 const auth = require('./routes/auth');
 const quizzes = require('./routes/quizzes');
@@ -80,6 +88,7 @@ const statistics = require('./routes/statistics');
 const reports = require('./routes/reports');
 const digital_class = require('./routes/digital_class');
 const suggest_quiz = require('./routes/suggest_quiz');
+//const UsersInClass = require('./models/UsersInclass');
 
 // Load env vars
 dotenv.config({ path: './config/config.env' });

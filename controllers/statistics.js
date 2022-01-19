@@ -5,54 +5,100 @@ const Users = require('../models/User');
 const Statistic = require('../models/Statistic');
 const UsersInclass = require('../models/UsersInclass');
 const Report = require('../models/Report');
-//  @desc     Get quiz statistics
-//  @route    GET /api/v1/statistics
-//  @access   Private
-/* exports.getQuizStatistics = asyncHandler(async (req, res, next) => {
-  const quiz_id = 1;
-  const data = await Statistic.findAll({
-    where: { quiz_id },
-  });
-  const quiz = await Quiz.findOne({
-    where: { id: quiz_id },
-  });
-  let count_users = 0;
-  let score_avg = 0;
-  let correct_avg = 0;
-  let false_avg = 0;
-  data.forEach(
-    (item) => (
-      (count_users += 1),
-      (score_avg = item.score_avg + score_avg),
-      (correct_avg = item.correct_avg + correct_avg),
-      (false_avg = item.false_avg + false_avg)
-    )
-  );
-  score_avg = score_avg / data.length;
-  correct_avg = correct_avg / data.length;
-  false_avg = false_avg / data.length;
-  statistics = {
-    ...quiz.dataValues,
-    count_users,
-    score_avg,
-    correct_avg,
-    false_avg,
-  };
+const SuggestQuiz = require('../models/SuggestQuiz');
+const UsersInClass = require('../models/UsersInclass');
+const DigitalClass = require('../models/DigitalClass');
+const Reports = require('../models/Report');
 
-  res.status(200).json({
-    success: true,
-    statistics,
-  });
+//  @desc     Get all statistics
+//  @route    GET /api/v1/statistics/all
+//  @access   Private (Admin)
+exports.getStatisticsAll = asyncHandler(async (req, res, next) => {
+  const type = +req.user.type;
+  if (type === 1) {
+    const statistics = await Statistic.findAll({});
+
+    if (!statistics) {
+      return next(new ErrorResponse(`Statistics  not found`, 404));
+    }
+    res.status(200).json({
+      success: true,
+      data: statistics,
+    });
+  } else {
+    return next(
+      new ErrorResponse(`User is not authorized to get statistics`, 401)
+    );
+  }
 });
- */
-//  @desc     Get quizzes statistics by specific user id (Teacher)
-//  @route    GET /api/v1/statistics/:id
+
+//  @desc     Get dashboard statistics
+//  @route    GET /api/v1/statistics/dashboard
+//  @access   Private (Admin)
+exports.getStatisticsDashboard = asyncHandler(async (req, res, next) => {
+  const type = +req.user.type;
+  if (type === 1) {
+    const users = await Users.findAll({});
+    const quizzes = await Quiz.findAll({});
+    const suggestquizzes = await SuggestQuiz.findAll({});
+    const statistics = await Statistic.findAll({});
+    const dClasses = await DigitalClass.findAll({});
+    const reports = await Reports.findAll({});
+
+    const statisticsDash = {
+      users_count: users.length,
+      quizzes_count: quizzes.length,
+      suggestquizzes_count: suggestquizzes.length,
+      statistics_count: statistics.length,
+      dClasses_count: dClasses.length,
+      reports_count: reports.length,
+    };
+    res.status(200).json({
+      success: true,
+      data: statisticsDash,
+    });
+  } else {
+    return next(
+      new ErrorResponse(`User is not authorized to get statistics`, 401)
+    );
+  }
+});
+
+//  @desc     Delete  statistics
+//  @route    Delete /api/v1/statistics/:id
+//  @access   Private (Admin)
+exports.deleteStatistics = asyncHandler(async (req, res, next) => {
+  const type = +req.user.type;
+  if (type === 1) {
+    const ids = req.params.id.split('-');
+    const user_id = +ids[0];
+    const quiz_id = +ids[1];
+
+    const statistics = await Statistic.findOne({
+      where: { user_id, quiz_id },
+    });
+    if (!statistics) {
+      return next(new ErrorResponse(`Statistics not found`, 404));
+    }
+    await statistics.destroy();
+
+    res.status(200).json({ message: 'Statistics deleted!' });
+  } else {
+    return next(
+      new ErrorResponse(`User is not authorized to delete  statistics `, 401)
+    );
+  }
+});
+
+//  @desc     Get quizzes statistics by specific user id
+//  @route    GET /api/v1/statistics/
 //  @access   Private (Teacher + Admin)
-exports.getTeacherStatistics = asyncHandler(async (req, res, next) => {
+exports.getStatistics = asyncHandler(async (req, res, next) => {
   const type = +req.user.type;
   let id = +req.params.id;
   const statistics = [];
 
+  // Teacher & Admin Statitics
   if (type === 2 || type === 1) {
     if (type === 2) {
       id = +req.user.id;
@@ -114,6 +160,53 @@ exports.getTeacherStatistics = asyncHandler(async (req, res, next) => {
       if (result.length === 0 || !result) break;
       statistics.push(result);
     }
+
+    res.status(200).json({
+      success: true,
+      data: statistics,
+    });
+  }
+  // Student Statitics
+  else if (type === 0) {
+    const user_id = +req.user.id;
+    const statistics = [];
+
+    //Find if student has statistics
+    const user_statistics = await Statistic.findAll({ where: { user_id } });
+    if (user_statistics.length === 0 || !user_statistics) {
+      return res.status(200).json({
+        success: true,
+        data: statistics,
+      });
+    }
+
+    //Find all quizzes
+    const quizzes = await Quiz.findAll();
+
+    if (quizzes.length === 0 || !quizzes) {
+      return next(new ErrorResponse(`Σφάλμα `, 404));
+    }
+
+    // Collection of necessary statistical and quiz data
+    for (i = 0; i < user_statistics.length; i++) {
+      for (j = 0; j < quizzes.length; j++) {
+        if (quizzes[j].id === user_statistics[i].quiz_id) {
+          const data = {
+            id: quizzes[j].id,
+            title: quizzes[j].title,
+            play_count: user_statistics[i].play_count,
+            score_avg: user_statistics[i].score_avg,
+            correct_avg: user_statistics[i].correct_avg,
+            false_avg: user_statistics[i].false_avg,
+          };
+          //console.log(data);
+          statistics[i] = data;
+          //console.log(statistics);
+          break;
+        }
+      }
+    }
+    // console.log(statistics);
 
     res.status(200).json({
       success: true,
@@ -198,7 +291,7 @@ exports.getScore = asyncHandler(async (req, res, next) => {
   });
 });
 
-//  @desc     Get users by specific class id
+//  @desc     Get users in class by specific class id
 //  @route    GET /api/v1/statistics/users/:id
 //  @access   Private (Teacher + Admin + Student)
 exports.getUsersInClass = asyncHandler(async (req, res, next) => {
@@ -221,4 +314,58 @@ exports.getUsersInClass = asyncHandler(async (req, res, next) => {
     count: users_inclass.length,
     data: users_inclass,
   });
+});
+
+//  @desc     Get all users registered in classes
+//  @route    GET /api/v1/statistics/users/all
+//  @access   Private (Admin)
+exports.getAllUsersInClass = asyncHandler(async (req, res, next) => {
+  const type = +req.user.type;
+
+  if (type === 1) {
+    const users_inclass = await UsersInclass.findAll({});
+
+    if (users_inclass.length === 0 || !users_inclass) {
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        data: users_inclass,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      count: users_inclass.length,
+      data: users_inclass,
+    });
+  } else {
+    return next(new ErrorResponse(`User is not authorized to get users`, 401));
+  }
+});
+
+//  @desc     Delete user in class
+//  @route    DELETE /api/v1/statistics/users/:id
+//  @access   Private (Admin)
+exports.deleteUserInClass = asyncHandler(async (req, res, next) => {
+  const type = +req.user.type;
+
+  if (type === 1) {
+    const ids = req.params.id.split('-');
+    const user_id = +ids[0];
+    const class_id = +ids[1];
+
+    const users_inclass = await UsersInclass.findOne({
+      where: { user_id, class_id },
+    });
+    if (!users_inclass) {
+      return next(new ErrorResponse(`User not found`, 404));
+    }
+    await users_inclass.destroy();
+
+    res.status(200).json({ message: 'User in class deleted!' });
+  } else {
+    return next(
+      new ErrorResponse(`User is not authorized to delete a user in class`, 401)
+    );
+  }
 });
