@@ -9,11 +9,11 @@ const errorHandler = (err, req, res, next) => {
   console.log(err.stack.red);
 
   if (err.name === 'TypeError') {
-    const message = `Resources not found`;
+    const message = `Δεν βρέθηκαν πόροι`;
     error = new ErrorResponse(message, 404);
   }
   if (err.name === 'ReferenceError') {
-    const message = `Resources not found`;
+    const message = `Δεν βρέθηκαν πόροι`;
     error = new ErrorResponse(message, 404);
   }
 
@@ -31,12 +31,12 @@ const errorHandler = (err, req, res, next) => {
     error = new ErrorResponse(message, 400);
   }
   if (err.name === 'SequelizeDatabaseError') {
-    const message = 'Λάθος κωδικός id';
+    const message = 'Λάθος id';
     error = new ErrorResponse(message, 400);
   }
   res.status(error.statusCode || 500).json({
     success: false,
-    error: error.message || 'Server Error!',
+    error: error.message || 'Σφάλμα διακομιστή!',
   });
 };
 

@@ -1,7 +1,8 @@
 const asyncHandler = require('../middleware/async');
 const ErrorResponse = require('../utils/errorResponse');
 const DigitalClass = require('../models/DigitalClass');
-const UsersInClass = require('../models/UsersInClass');
+const InClass = require('../models/InClass');
+const Users = require('../models/User');
 
 //  @desc     Get digital classes
 //  @route    GET /api/v1/digitalclass/
@@ -10,14 +11,24 @@ exports.getDigitalClassListAll = asyncHandler(async (req, res, next) => {
   const type = +req.user.type;
 
   if (type === 1) {
-    const digitalClass = await DigitalClass.findAll({});
+    const digitalClass = await DigitalClass.findAll({
+      include: [
+        {
+          model: Users,
+          attributes: ['username'],
+        },
+      ],
+    });
 
     res
       .status(200)
       .json({ success: true, count: digitalClass.length, data: digitalClass });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to get digital classes`, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα να λάβει ψηφιακές τάξεις`,
+        401
+      )
     );
   }
 });
@@ -36,17 +47,20 @@ exports.deleteDigitalClass = asyncHandler(async (req, res, next) => {
     if (!dClass) {
       return next(
         new ErrorResponse(
-          `Digital Class not found with id of ${req.params.id}`,
+          `Η ψηφιακή τάξη δεν βρέθηκε με id ${req.params.id}`,
           404
         )
       );
     }
     await dClass.destroy();
 
-    res.status(200).json({ message: 'Digital Class deleted!' });
+    res.status(200).json({ message: 'Επιτυχής διαγραφή!' });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to delete a digital class`, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα να διαγράψει ψηφιακές τάξεις`,
+        401
+      )
     );
   }
 });
@@ -66,7 +80,7 @@ exports.getDigitalClassList = asyncHandler(async (req, res, next) => {
       .json({ success: true, count: digitalClass.length, data: digitalClass });
   } else if (type === 0) {
     const digitalClass = await DigitalClass.findAll();
-    const userInClass = await UsersInClass.findAll({ where: { user_id: id } });
+    const userInClass = await InClass.findAll({ where: { user_id: id } });
     //console.log(userInClass);
 
     const dClass = [];
@@ -86,7 +100,10 @@ exports.getDigitalClassList = asyncHandler(async (req, res, next) => {
       .json({ success: true, count: digitalClass.length, data: dClass });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to get digital classes`, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα να λάβει ψηφιακές τάξεις`,
+        401
+      )
     );
   }
 });
@@ -106,14 +123,14 @@ exports.getDigitalClass = asyncHandler(async (req, res, next) => {
     if (digitalClass.length === 0 || !digitalClass) {
       return next(
         new ErrorResponse(
-          `Digital Class not found with id of ${req.params.id}`,
+          `Η ψηφιακή τάξη δεν βρέθηκε με id ${req.params.id}`,
           404
         )
       );
     }
 
     if (type === 2 && digitalClass[0].dataValues.user_id !== req.user.id) {
-      return next(new ErrorResponse('Not authorize to access this route', 401));
+      return next(new ErrorResponse('Δεν έχει δικαίωμα πρόσβασης', 401));
     }
 
     res.status(200).json({ success: true, data: digitalClass });
@@ -123,23 +140,26 @@ exports.getDigitalClass = asyncHandler(async (req, res, next) => {
     if (digitalClass.length === 0 || !digitalClass) {
       return next(
         new ErrorResponse(
-          `Digital Class not found with id of ${req.params.id}`,
+          `Η ψηφιακή τάξη δεν βρέθηκε με id ${req.params.id}`,
           404
         )
       );
     }
 
-    const belongClass = await UsersInClass.findAll({
+    const belongClass = await InClass.findAll({
       where: { user_id, class_id: id },
     });
     if (belongClass.length === 0 || !belongClass) {
-      return next(new ErrorResponse('Not authorize to access this route', 401));
+      return next(new ErrorResponse('Δεν έχει δικαίωμα πρόσβασης', 401));
     }
 
     res.status(200).json({ success: true, data: digitalClass });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to get digital classes`, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα να λάβει ψηφιακές τάξεις`,
+        401
+      )
     );
   }
 });
@@ -159,7 +179,10 @@ exports.createDigitalClass = asyncHandler(async (req, res, next) => {
     res.status(201).json({ success: true, data: digitalClass });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to create digital class`, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα δημιουργίας ψηφιακής τάξης`,
+        401
+      )
     );
   }
 });
@@ -185,7 +208,7 @@ exports.enrollDigitalClass = asyncHandler(async (req, res, next) => {
         )
       );
     }
-    const ernollUserInClass = await UsersInClass.findAll({
+    const ernollUserInClass = await InClass.findAll({
       where: { user_id, class_id },
     });
     //console.log(ernollUserInClass, user_id, class_id);
@@ -196,14 +219,17 @@ exports.enrollDigitalClass = asyncHandler(async (req, res, next) => {
     }
 
     req.body.user_id = req.user.id;
-    const usersInClass = await UsersInClass.create(req.body);
+    const usersInClass = await InClass.create(req.body);
     res.status(201).json({ success: true, data: usersInClass });
   } else if (type === 1) {
-    const usersInClass = await usersInClass.create(req.body);
+    const usersInClass = await InClass.create(req.body);
     res.status(201).json({ success: true, data: usersInClass });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to create digital class`, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα δικαιωμα εγγραφης σε ψηφιακή τάξη`,
+        401
+      )
     );
   }
 });
@@ -225,7 +251,7 @@ exports.updateDigitalClass = asyncHandler(async (req, res, next) => {
     if (!dClass) {
       return next(
         new ErrorResponse(
-          `Digital class not found with id of ${req.params.id}`,
+          `Δεν βρέθηκε η ψηφιακή τάξη με κωδικό ${req.params.id}`,
           404
         )
       );
@@ -245,7 +271,10 @@ exports.updateDigitalClass = asyncHandler(async (req, res, next) => {
     });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to update digital class`, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα να ενημερώσει ψηφιακή τάξη`,
+        401
+      )
     );
   }
 });

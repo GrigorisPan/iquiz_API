@@ -1,8 +1,8 @@
-/* const Sequelize = require('sequelize');
+const Sequelize = require('sequelize');
 
 const sequelize = require('../config/database');
 
-const UsersInClass = sequelize.define('users_inclass_ps', {
+const InClass = sequelize.define('inclass_ps', {
   user_id: {
     type: Sequelize.INTEGER(11),
     primaryKey: true,
@@ -15,5 +15,4 @@ const UsersInClass = sequelize.define('users_inclass_ps', {
   },
 });
 
-module.exports = UsersInClass;
- */
+module.exports = InClass;

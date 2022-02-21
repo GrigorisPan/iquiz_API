@@ -9,7 +9,8 @@ const Statistic = require('./models/Statistic');
 const Report = require('./models/Report');
 const DigitalClass = require('./models/DigitalClass');
 const SuggestQuiz = require('./models/SuggestQuiz');
-const UsersInClass = require('./models/UsersInClass');
+//const UsersInClass = require('./models/UsersInClass');
+const InClass = require('./models/InClass');
 //Read JSON files
 const users = JSON.parse(
   fs.readFileSync(`${__dirname}/_data/users.json`, 'utf-8')
@@ -41,7 +42,7 @@ const importData = async () => {
     await Report.bulkCreate(reports, { validate: true });
     await DigitalClass.bulkCreate(digital_class, { validate: true });
     await SuggestQuiz.bulkCreate(suggest_quiz, { validate: true });
-    await UsersInClass.bulkCreate(users_inclass, { validate: true });
+    await InClass.bulkCreate(users_inclass, { validate: true });
     console.log('Data Imported...'.green.inverse);
     process.exit();
   } catch (err) {
@@ -51,7 +52,7 @@ const importData = async () => {
 
 const deleteData = async () => {
   try {
-    await UsersInClass.destroy({
+    await InClass.destroy({
       where: {},
     });
     await SuggestQuiz.destroy({

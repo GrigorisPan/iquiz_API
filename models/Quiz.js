@@ -24,6 +24,15 @@ const Quiz = sequelize.define('quiz_ps', {
       notNull: { msg: 'Παρακαλώ εισάγετε τίτλο' },
     },
   },
+  repeat: {
+    type: Sequelize.INTEGER(10),
+    allowNull: false,
+    validate: {
+      /* notEmpty: { msg: 'Παρακαλώ εισάγετε επανάληψη' }, */
+      /*   notNull: { msg: 'Παρακαλώ εισάγετε επανάληψη' }, */
+      isInt: { msg: 'Παρακαλώ εισάγετε επανάληψη' },
+    },
+  },
   description: {
     type: Sequelize.STRING(300),
     allowNull: false,
@@ -44,10 +53,10 @@ const Quiz = sequelize.define('quiz_ps', {
   questions_otp: {
     type: Sequelize.INTEGER(10),
     allowNull: false,
-    unique: {
+    /* unique: {
       args: true,
       msg: 'Otp πρέπει να είναι μοναδικός',
-    },
+    }, */
     validate: {
       isInt: { msg: 'Ο κωδικός otp πρέπει να είναι ακέραιος αριθμός' },
       notEmpty: { msg: 'Ο κωδικός otp δεν πρέπει να είναι κενός' },
@@ -55,14 +64,18 @@ const Quiz = sequelize.define('quiz_ps', {
     },
   },
   photo: {
-    type: Sequelize.STRING,
+    type: Sequelize.STRING(300),
+    defaultValue: 'no-photo.png',
+  },
+  photo_name: {
+    type: Sequelize.STRING(300),
     defaultValue: 'no-photo.png',
   },
   status: {
     type: Sequelize.STRING(10),
     allowNull: false,
     validate: {
-      notEmpty: { msg: 'Η κατάσταση δεν πρέπει να είναι κενός' },
+      notEmpty: { msg: 'Η κατάσταση δεν πρέπει να είναι κενή' },
       notNull: { msg: 'Παρακαλώ εισάγετε κατάσταση' },
     },
   },

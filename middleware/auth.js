@@ -26,8 +26,36 @@ exports.protect = asyncHandler(async (req, res, next) => {
   try {
     //Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decoded.id);
+    //console.log(decoded.exp);
+    const user = await Users.findByPk(decoded.id);
+    if (!user) {
+      return next(new ErrorResponse('Invalid Token', 401));
+    }
+    req.user = user;
+    next();
+  } catch (err) {
+    return next(new ErrorResponse('Not authorize to access this route', 401));
+  }
+});
+
+//Renew Access and Refresh Token
+exports.renew = asyncHandler(async (req, res, next) => {
+  let token;
+
+  if (req.cookies.refreshToken) {
+    token = req.cookies.refreshToken;
+  }
+  //Make sure token exists
+  if (!token) {
+    return next(new ErrorResponse('Not authorize to access this route', 401));
+  }
+
+  try {
+    //Verify token
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+
     req.user = await Users.findByPk(decoded.id);
+    req.token = token;
 
     next();
   } catch (err) {

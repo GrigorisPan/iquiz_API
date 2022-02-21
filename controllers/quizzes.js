@@ -5,6 +5,7 @@ const Quiz = require('../models/Quiz');
 const Users = require('../models/User');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
+
 //  @desc     Get all public quizzes (Public)
 //  @route    GET /api/v1/quizzes
 //  @access   Private (Student & Teacher & Admin)
@@ -44,7 +45,7 @@ exports.getAllQuizzes = asyncHandler(async (req, res, next) => {
   }
   if (type === 1) {
     const quizzes = await Quiz.findAll({
-      include: [{ model: Users }],
+      include: [{ model: Users, attributes: ['username'] }],
     });
     res
       .status(200)
@@ -63,7 +64,7 @@ exports.getQuiz = asyncHandler(async (req, res, next) => {
   });
   if (!quiz) {
     return next(
-      new ErrorResponse(`Quiz not found with id of ${req.params.id}`, 404)
+      new ErrorResponse(`Δεν βρέθηκες το κουίζ με id  ${req.params.id}`, 404)
     );
   }
   res.status(200).json({ success: true, data: quiz });
@@ -83,7 +84,7 @@ exports.getAllQuiz = asyncHandler(async (req, res, next) => {
     });
     if (!quiz) {
       return next(
-        new ErrorResponse(`Quiz not found with id of ${req.params.id}`, 404)
+        new ErrorResponse(`Το κουίζ δεν βρέθηκε με id ${req.params.id}`, 404)
       );
     }
     res.status(200).json({ success: true, data: quiz });
@@ -95,7 +96,10 @@ exports.getAllQuiz = asyncHandler(async (req, res, next) => {
     });
     if (!quiz) {
       return next(
-        new ErrorResponse(`Quiz not found with id of ${req.params.id}`, 404)
+        new ErrorResponse(
+          `Το κουίζ δεν βρέθηκε με id ${req.params.id} ${req.params.id}`,
+          404
+        )
       );
     }
     res.status(200).json({ success: true, data: quiz });
@@ -110,7 +114,7 @@ exports.createQuiz = asyncHandler(async (req, res, next) => {
   const type = +req.user.type;
   if (type === 2 || type === 1) {
     const quiz = await Quiz.create(req.body);
-    console.log(quiz);
+    //console.log(quiz);
 
     res.status(201).json({
       success: true,
@@ -118,7 +122,10 @@ exports.createQuiz = asyncHandler(async (req, res, next) => {
     });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to create quiz`, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα να δημιουργήσει κουίζ`,
+        401
+      )
     );
   }
 });
@@ -131,19 +138,20 @@ exports.updateQuiz = asyncHandler(async (req, res, next) => {
   const type = +req.user.type;
 
   if (type === 2 || type === 1) {
-    const { title, description, time, questions_otp, photo, status } = req.body;
+    const { title, repeat, description, time, questions_otp, photo, status } =
+      req.body;
 
     const quiz = await Quiz.findOne({ where: { id } });
 
     if (!quiz) {
       return next(
-        new ErrorResponse(`Quiz not found with id of ${req.params.id}`, 404)
+        new ErrorResponse(`Το κουίζ δεν βρέθηκε με id ${req.params.id}`, 404)
       );
     }
     if (type === 2 && quiz.user_id !== req.user.id) {
       return next(
         new ErrorResponse(
-          `User is not authorized to update this quiz with id:${req.params.id}`,
+          `Ο χρήστης δεν έχει δικαίωμα να ενημερώσει το κουίζ με id:${req.params.id}`,
           401
         )
       );
@@ -155,6 +163,7 @@ exports.updateQuiz = asyncHandler(async (req, res, next) => {
     }
 
     quiz.title = title;
+    quiz.repeat = repeat;
     quiz.description = description;
     quiz.time = time;
     quiz.questions_otp = questions_otp;
@@ -169,7 +178,7 @@ exports.updateQuiz = asyncHandler(async (req, res, next) => {
     });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to create quiz`, 401)
+      new ErrorResponse(`Ο χρήστης δεν έχει δικαίωμα να ενημερώσει κουίζ`, 401)
     );
   }
 });
@@ -187,14 +196,14 @@ exports.deleteQuiz = asyncHandler(async (req, res, next) => {
     });
     if (!quiz) {
       return next(
-        new ErrorResponse(`Quiz not found with id of ${req.params.id}`, 404)
+        new ErrorResponse(`Το κουίζ δεν βρέθηκε με id ${req.params.id}`, 404)
       );
     }
 
     if (type === 2 && quiz.user_id !== req.user.id) {
       return next(
         new ErrorResponse(
-          `User is not authorized to update this quiz with id:${req.params.id}`,
+          `Ο χρήστης δεν έχει δικαίωμα να διαγράψει το κουίζ με id:${req.params.id}`,
           401
         )
       );
@@ -204,7 +213,7 @@ exports.deleteQuiz = asyncHandler(async (req, res, next) => {
     res.status(200).json({ message: 'Επιτυχής διαγραφή!' });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to create quiz`, 401)
+      new ErrorResponse(`Ο χρήστης δεν έχει δικαίωμα να διαγράψει κουίζ`, 401)
     );
   }
 });
@@ -222,13 +231,13 @@ exports.quizPhotoUpload = asyncHandler(async (req, res, next) => {
     });
     if (!quiz) {
       return next(
-        new ErrorResponse(`Quiz not found with id of ${req.params.id}`, 404)
+        new ErrorResponse(`Το κουίζ δεν βρέθηκε με id ${req.params.id}`, 404)
       );
     }
     if (type === 2 && quiz.user_id !== req.user.id) {
       return next(
         new ErrorResponse(
-          `User is not authorized to update this quiz with id:${req.params.id}`,
+          `Ο χρήστης δεν έχει δικαίωμα να ανεβάσει φωτογραφία στο κουίζ με κωδικό:${req.params.id}`,
           401
         )
       );
@@ -262,7 +271,7 @@ exports.quizPhotoUpload = asyncHandler(async (req, res, next) => {
         )
       );
     }
-
+    const image_name = file.name;
     //Create custom filename
     file.name = `img${quiz.id}_${Date.parse(quiz.createdAt)}${
       path.parse(file.name).ext
@@ -274,7 +283,7 @@ exports.quizPhotoUpload = asyncHandler(async (req, res, next) => {
         return next(new ErrorResponse(`Problem with file upload`, 500));
       }
 
-      await quiz.update({ photo: file.name });
+      await quiz.update({ photo: file.name, photo_name: image_name });
       res.status(200).json({
         success: true,
         data: file.name,
@@ -282,7 +291,10 @@ exports.quizPhotoUpload = asyncHandler(async (req, res, next) => {
     });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to create quiz`, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα να ανεβάσει φωτογραφία σε κουίζ`,
+        401
+      )
     );
   }
   //console.log(file.name);

@@ -3,10 +3,10 @@ const ErrorResponse = require('../utils/errorResponse');
 const Quiz = require('../models/Quiz');
 const Users = require('../models/User');
 const Statistic = require('../models/Statistic');
-const UsersInclass = require('../models/UsersInclass');
+/* const UsersInclass = require('../models/UsersInclass'); */
 const Report = require('../models/Report');
 const SuggestQuiz = require('../models/SuggestQuiz');
-const UsersInClass = require('../models/UsersInclass');
+const InClass = require('../models/InClass');
 const DigitalClass = require('../models/DigitalClass');
 const Reports = require('../models/Report');
 
@@ -16,18 +16,29 @@ const Reports = require('../models/Report');
 exports.getStatisticsAll = asyncHandler(async (req, res, next) => {
   const type = +req.user.type;
   if (type === 1) {
-    const statistics = await Statistic.findAll({});
+    const statistics = await Statistic.findAll({
+      include: [
+        {
+          model: Users,
+          attributes: ['username'],
+        },
+        {
+          model: Quiz,
+          attributes: ['title'],
+        },
+      ],
+    });
 
-    if (!statistics) {
-      return next(new ErrorResponse(`Statistics  not found`, 404));
-    }
+    /*  if (!statistics) {
+      return next(new ErrorResponse(`Δεν βρέθηκαν στατιστικά`, 404));
+    } */
     res.status(200).json({
       success: true,
       data: statistics,
     });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to get statistics`, 401)
+      new ErrorResponse(`Ο χρήστης δεν έχει δικαίωμα να λάβει στατιστικά`, 401)
     );
   }
 });
@@ -59,7 +70,7 @@ exports.getStatisticsDashboard = asyncHandler(async (req, res, next) => {
     });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to get statistics`, 401)
+      new ErrorResponse(`Ο χρήστης δεν έχει δικαίωμα να λάβει στατιστικά`, 401)
     );
   }
 });
@@ -78,14 +89,17 @@ exports.deleteStatistics = asyncHandler(async (req, res, next) => {
       where: { user_id, quiz_id },
     });
     if (!statistics) {
-      return next(new ErrorResponse(`Statistics not found`, 404));
+      return next(new ErrorResponse(`Δεν βρέθηκαν στατιστικά`, 404));
     }
     await statistics.destroy();
 
-    res.status(200).json({ message: 'Statistics deleted!' });
+    res.status(200).json({ message: 'Επιτυχής διαγραφή!' });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to delete  statistics `, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα να διαγράψει στατιστικά`,
+        401
+      )
     );
   }
 });
@@ -103,20 +117,24 @@ exports.getStatistics = asyncHandler(async (req, res, next) => {
     if (type === 2) {
       id = +req.user.id;
     }
+
     const user_quizzes = await Quiz.findAll({
       where: { user_id: id },
     });
+    //console.log(user_quizzes);
     if (user_quizzes.length === 0 || !user_quizzes) {
-      return next(new ErrorResponse(`Statistics not found `, 404));
+      return next(new ErrorResponse(`Δεν βρέθηκαν στατιστικά`, 404));
     }
 
     const quizzes_id = user_quizzes.map((quiz) => quiz.id);
-
+    //console.log(quizzes_id);
     const asyncFunc = asyncHandler(async (quiz_id) => {
+      //console.log(quiz_id);
       const data = await Statistic.findAll({
         where: { quiz_id },
       });
 
+      //console.log(data);
       if (data.length === 0) {
         return [];
       }
@@ -156,8 +174,8 @@ exports.getStatistics = asyncHandler(async (req, res, next) => {
 
     for (let i in quizzes_id) {
       let quiz_id = quizzes_id[i];
-      result = await asyncFunc(quiz_id);
-      if (result.length === 0 || !result) break;
+      const result = await asyncFunc(quiz_id);
+      if (result.length === 0 || !result) continue;
       statistics.push(result);
     }
 
@@ -214,7 +232,7 @@ exports.getStatistics = asyncHandler(async (req, res, next) => {
     });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to get statistics`, 401)
+      new ErrorResponse(`Ο χρήστης δεν έχει δικαίωμα να λάβει στατιστικά`, 401)
     );
   }
 });
@@ -226,7 +244,7 @@ exports.getScore = asyncHandler(async (req, res, next) => {
   const id = +req.params.id;
   let score = [];
 
-  const users_inclass = await UsersInclass.findAll({
+  const users_inclass = await InClass.findAll({
     where: { class_id: id },
   });
   //console.log(users_inclass);
@@ -297,7 +315,7 @@ exports.getScore = asyncHandler(async (req, res, next) => {
 exports.getUsersInClass = asyncHandler(async (req, res, next) => {
   const id = +req.params.id;
 
-  const users_inclass = await UsersInclass.findAll({
+  const users_inclass = await InClass.findAll({
     where: { class_id: id },
   });
 
@@ -323,7 +341,18 @@ exports.getAllUsersInClass = asyncHandler(async (req, res, next) => {
   const type = +req.user.type;
 
   if (type === 1) {
-    const users_inclass = await UsersInclass.findAll({});
+    const users_inclass = await InClass.findAll({
+      include: [
+        {
+          model: Users,
+          attributes: ['username'],
+        },
+        {
+          model: DigitalClass,
+          attributes: ['title'],
+        },
+      ],
+    });
 
     if (users_inclass.length === 0 || !users_inclass) {
       return res.status(200).json({
@@ -339,7 +368,9 @@ exports.getAllUsersInClass = asyncHandler(async (req, res, next) => {
       data: users_inclass,
     });
   } else {
-    return next(new ErrorResponse(`User is not authorized to get users`, 401));
+    return next(
+      new ErrorResponse(`Ο χρήστης δεν έχει δικαίωμα να λάβει χρήστες`, 401)
+    );
   }
 });
 
@@ -354,18 +385,21 @@ exports.deleteUserInClass = asyncHandler(async (req, res, next) => {
     const user_id = +ids[0];
     const class_id = +ids[1];
 
-    const users_inclass = await UsersInclass.findOne({
+    const users_inclass = await InClass.findOne({
       where: { user_id, class_id },
     });
     if (!users_inclass) {
-      return next(new ErrorResponse(`User not found`, 404));
+      return next(new ErrorResponse(`Δεν βρέθηκε ο χρήστης`, 404));
     }
     await users_inclass.destroy();
 
-    res.status(200).json({ message: 'User in class deleted!' });
+    res.status(200).json({ message: 'Επιτυχής διαγραφή!' });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to delete a user in class`, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα να διαγράψει χρήστη από ψηφιακή τάξη`,
+        401
+      )
     );
   }
 });

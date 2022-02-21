@@ -5,7 +5,7 @@ const Users = require('../models/User');
 
 //  @desc     Get all users
 //  @route    GET /api/v1/users
-//  @access   Private
+//  @access   Private (Admin)
 exports.getUsers = asyncHandler(async (req, res, next) => {
   const type = +req.user.type;
 
@@ -13,13 +13,15 @@ exports.getUsers = asyncHandler(async (req, res, next) => {
     const users = await Users.findAll();
     res.status(200).json({ success: true, count: users.length, data: users });
   } else {
-    return next(new ErrorResponse(`User is not authorized to get users`, 401));
+    return next(
+      new ErrorResponse(`Ο χρήστης δεν έχει δικαίωμα να λάβει χρήστες`, 401)
+    );
   }
 });
 
 //  @desc     Get single user
 //  @route    GET /api/v1/users/:id
-//  @access   Private
+//  @access   Private (Teacher + Admin + Student)
 exports.getUser = asyncHandler(async (req, res, next) => {
   const id = +req.params.id;
   const user = await Users.findOne({
@@ -29,7 +31,7 @@ exports.getUser = asyncHandler(async (req, res, next) => {
 
   if (!user) {
     return next(
-      new ErrorResponse(`User not found with id of ${req.params.id}`, 404)
+      new ErrorResponse(`Ο χρήστης δεν βρέθηκε με id ${req.params.id}`, 404)
     );
   }
 
@@ -41,7 +43,7 @@ exports.getUser = asyncHandler(async (req, res, next) => {
 //  @access   Private
 exports.createUser = asyncHandler(async (req, res, next) => {
   const user = await Users.create(req.body);
-  console.log(user);
+  //console.log(user);
   res.status(201).json({
     success: true,
     data: user,
@@ -72,7 +74,10 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
     type = +req.body.type;
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to update user`, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα να ενημερώσει στοιχεία χρήστη`,
+        401
+      )
     );
   }
 
@@ -85,7 +90,7 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
 
   if (!user) {
     return next(
-      new ErrorResponse(`User not found with id of ${req.params.id}`, 404)
+      new ErrorResponse(`Δεν βρέθηκε ο χρήστης με κωδικό ${req.params.id}`, 404)
     );
   }
 
@@ -128,15 +133,18 @@ exports.deleteUser = asyncHandler(async (req, res, next) => {
     });
     if (!user) {
       return next(
-        new ErrorResponse(`User not found with id of ${req.params.id}`, 404)
+        new ErrorResponse(
+          `Δεν βρέθηκε ο χρήστης με κωδικό ${req.params.id}`,
+          404
+        )
       );
     }
     await user.destroy();
 
-    res.status(200).json({ message: 'User deleted!' });
+    res.status(200).json({ message: 'Επιτυχής διαγραφή!' });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to delete a user`, 401)
+      new ErrorResponse(`Ο χρήστης δεν έχει δικαίωμα να διαγράψει χρήστη`, 401)
     );
   }
 });

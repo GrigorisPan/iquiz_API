@@ -13,8 +13,8 @@ const Reports = sequelize.define('reports_ps', {
     primaryKey: true,
     allowNull: false,
   },
-  question_num: {
-    type: Sequelize.INTEGER(5),
+  question: {
+    type: Sequelize.STRING(300),
     allowNull: false,
   },
 });

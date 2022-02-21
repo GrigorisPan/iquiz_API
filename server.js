@@ -15,7 +15,9 @@ const Statistic = require('./models/Statistic');
 const Reports = require('./models/Report');
 const DigitalClass = require('./models/DigitalClass');
 const SuggestQuiz = require('./models/SuggestQuiz');
-const UsersInClass = require('./models/UsersInClass');
+/* const UsersInClass = require('./models/UsersInClass'); */
+const InClass = require('./models/InClass');
+
 //Creating associations
 
 //quiz_ps
@@ -34,6 +36,7 @@ Users.belongsToMany(Quiz, {
   foreignKey: 'user_id',
 });
 Statistic.belongsTo(Users, { foreignKey: 'user_id' });
+Statistic.belongsTo(Quiz, { foreignKey: 'quiz_id' });
 
 //reports_ps
 Quiz.belongsToMany(Users, {
@@ -44,6 +47,8 @@ Users.belongsToMany(Quiz, {
   through: 'reports_ps',
   foreignKey: 'user_id',
 });
+Reports.belongsTo(Users, { foreignKey: 'user_id' });
+Reports.belongsTo(Quiz, { foreignKey: 'quiz_id' });
 
 //digital_class_ps
 Users.hasMany(DigitalClass, {
@@ -51,20 +56,7 @@ Users.hasMany(DigitalClass, {
 });
 DigitalClass.belongsTo(Users, { foreignKey: 'user_id' });
 
-//suggest_quiz_ps
-Quiz.belongsToMany(DigitalClass, {
-  through: 'suggest_quiz_ps',
-  foreignKey: 'quiz_id',
-});
-DigitalClass.belongsToMany(Quiz, {
-  through: 'suggest_quiz_ps',
-  foreignKey: 'class_id',
-});
-SuggestQuiz.belongsTo(Quiz, {
-  foreignKey: 'quiz_id',
-});
-
-//users_inclass_ps
+/* //users_inclass_ps
 Users.belongsToMany(DigitalClass, {
   through: 'users_inclass_ps',
   foreignKey: 'user_id',
@@ -78,6 +70,38 @@ UsersInClass.belongsTo(Users, {
 });
 UsersInClass.belongsTo(DigitalClass, {
   foreignKey: 'class_id',
+}); */
+
+//suggest_quiz_ps
+Quiz.belongsToMany(DigitalClass, {
+  through: 'suggest_quiz_ps',
+  foreignKey: 'quiz_id',
+});
+DigitalClass.belongsToMany(Quiz, {
+  through: 'suggest_quiz_ps',
+  foreignKey: 'class_id',
+});
+SuggestQuiz.belongsTo(Quiz, {
+  foreignKey: 'quiz_id',
+});
+SuggestQuiz.belongsTo(DigitalClass, {
+  foreignKey: 'class_id',
+});
+
+//InClass_ps
+Users.belongsToMany(DigitalClass, {
+  through: 'inclass_ps',
+  foreignKey: 'user_id',
+});
+DigitalClass.belongsToMany(Users, {
+  through: 'inclass_ps',
+  foreignKey: 'class_id',
+});
+InClass.belongsTo(Users, {
+  foreignKey: 'user_id',
+});
+InClass.belongsTo(DigitalClass, {
+  foreignKey: 'class_id',
 });
 
 //Route files
@@ -88,7 +112,7 @@ const statistics = require('./routes/statistics');
 const reports = require('./routes/reports');
 const digital_class = require('./routes/digital_class');
 const suggest_quiz = require('./routes/suggest_quiz');
-//const UsersInClass = require('./models/UsersInclass');
+const game = require('./routes/game');
 
 // Load env vars
 dotenv.config({ path: './config/config.env' });
@@ -120,6 +144,7 @@ app.use('/api/v1/statistics', statistics);
 app.use('/api/v1/reports', reports);
 app.use('/api/v1/digitalclass', digital_class);
 app.use('/api/v1/suggestquiz', suggest_quiz);
+app.use('/api/v1/game', game);
 
 app.use(errorHandler);
 

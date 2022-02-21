@@ -2,9 +2,15 @@ const Sequelize = require('sequelize');
 const sequelize = require('../config/database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const Users = sequelize.define(
   'users_ps',
   {
+    id: {
+      type: Sequelize.INTEGER(11),
+      autoIncrement: true,
+      primaryKey: true,
+    },
     username: {
       type: Sequelize.STRING(25),
       allowNull: false,
@@ -20,6 +26,9 @@ const Users = sequelize.define(
         notNull: { msg: ' Πρέπει να εισαγάγετε ένα passowrd' },
         notEmpty: { msg: ' Ο κωδικός πρόσβασης δεν μπορεί να είναι κενός' },
       },
+    },
+    refreshToken: {
+      type: Sequelize.STRING(),
     },
     resetPasswordToken: {
       type: Sequelize.STRING(),
@@ -40,11 +49,6 @@ const Users = sequelize.define(
         notNull: { msg: ' Ο χρήστης πρέπει να ανήκει σε κάτηγορία' },
         notEmpty: { msg: ' Η κατηγορία χρήστη δεν μπορεί να είναι κένη' },
       },
-    },
-    id: {
-      type: Sequelize.INTEGER(11),
-      autoIncrement: true,
-      primaryKey: true,
     },
     last_name: {
       type: Sequelize.STRING(25),
@@ -98,9 +102,29 @@ const Users = sequelize.define(
 );
 //Sign JWT and return
 Users.prototype.getSignedJwtToken = function () {
+  //Generate token
   return jwt.sign({ id: this.id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
+};
+
+//Refresh JWT and return
+Users.prototype.getRefreshJwtToken = function () {
+  //Generate token
+  const refreshToken = jwt.sign(
+    { id: this.id },
+    process.env.JWT_REFRESH_SECRET,
+    {
+      expiresIn: process.env.JWT_REFRESH_EXPIRE,
+    }
+  );
+
+  //Hash token and set to refreshToken field
+  this.refreshToken = crypto
+    .createHash('sha256')
+    .update(refreshToken)
+    .digest('hex');
+  return refreshToken;
 };
 
 //Match user entered password to hashed password in database

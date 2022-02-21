@@ -2,22 +2,37 @@ const asyncHandler = require('../middleware/async');
 const ErrorResponse = require('../utils/errorResponse');
 const SuggestQuiz = require('../models/SuggestQuiz');
 const Quiz = require('../models/Quiz');
+const Users = require('../models/User');
 const DigitalClass = require('../models/DigitalClass');
-
+const Sequelize = require('sequelize');
 //  @desc     Get all suggest quizzes
 //  @route    GET /api/v1/suggestquiz/all
 //  @access   Private (Admin)
 exports.getSuggestQuizAll = asyncHandler(async (req, res, next) => {
   const type = +req.user.type;
   if (type === 1) {
-    const suggestquiz = await SuggestQuiz.findAll({});
+    const suggestquiz = await SuggestQuiz.findAll({
+      include: [
+        {
+          model: Quiz,
+          attributes: ['title'],
+        },
+        {
+          model: DigitalClass,
+          attributes: ['title'],
+        },
+      ],
+    });
 
     res
       .status(200)
       .json({ success: true, count: suggestquiz.length, data: suggestquiz });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to get suggest quizzes`, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα να λάβει προτεινόμενα κουίζ`,
+        401
+      )
     );
   }
 });
@@ -79,7 +94,10 @@ exports.getAvalDigitalClassesSuggest = asyncHandler(async (req, res, next) => {
     });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to create suggest quiz`, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα δημιουργίας προτεινόμενο κουίζ`,
+        401
+      )
     );
   }
 });
@@ -112,14 +130,17 @@ exports.addSuggestQuiz = asyncHandler(async (req, res, next) => {
     } else {
       return next(
         new ErrorResponse(
-          `Not authorized to create suggest quiz for that digital class`,
+          `Ο χρήστης δεν έχει δικαίωμα προσθήκης προτεινόμενου κουίζ σε αυτήν την ψηφιακή τάξη`,
           401
         )
       );
     }
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to create suggest quiz`, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα δημιουργίας προτεινόμενο κουίζ`,
+        401
+      )
     );
   }
 });
@@ -138,14 +159,17 @@ exports.deleteSuggestQuiz = asyncHandler(async (req, res, next) => {
       where: { class_id, quiz_id },
     });
     if (!suggest) {
-      return next(new ErrorResponse(`Suggest quiz not found`, 404));
+      return next(new ErrorResponse(`Δεν βρέθηκε προτεινόμενο κουίζ`, 404));
     }
     await suggest.destroy();
 
-    res.status(200).json({ message: 'Suggest quiz deleted!' });
+    res.status(200).json({ message: 'Επιτυχής διαγραφή!' });
   } else {
     return next(
-      new ErrorResponse(`User is not authorized to delete a suggest quiz`, 401)
+      new ErrorResponse(
+        `Ο χρήστης δεν έχει δικαίωμα να διαγράψει προτεινόμενο κουίζ`,
+        401
+      )
     );
   }
 });
