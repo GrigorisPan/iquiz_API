@@ -90,7 +90,9 @@ exports.createReport = asyncHandler(async (req, res, next) => {
       where: { user_id: req.body.user_id, quiz_id: req.body.quiz_id },
     });
     if (reports) {
-      return next(new ErrorResponse(`Δεν έχεις δικαίωμα κάνεις αναφορά.`, 401));
+      return next(
+        new ErrorResponse(`Δεν έχεις δικαίωμα να κάνεις αναφορά.`, 401)
+      );
     }
     const report = await Reports.create(req.body);
     //console.log(report);
@@ -118,34 +120,32 @@ exports.deleteReport = asyncHandler(async (req, res, next) => {
     const user_id = +ids[0];
     const quiz_id = +ids[1];
 
-    if (type === 1 || type === 2) {
-      if (type === 2) {
-        const quiz = await Quiz.findOne({
-          where: { id: quiz_id },
-        });
-        if (!quiz) {
-          return next(new ErrorResponse(`Η αναφορά δεν βρέθηκε`, 404));
-        }
-
-        if (quiz.user_id !== userId) {
-          return next(
-            new ErrorResponse(
-              `Ο χρήστης δεν έχει δικαίωμα να διαγράψει αναφορά`,
-              401
-            )
-          );
-        }
-      }
-      const report = await Reports.findOne({
-        where: { user_id, quiz_id },
+    if (type === 2) {
+      const quiz = await Quiz.findOne({
+        where: { id: quiz_id },
       });
-      if (!report) {
+      if (!quiz) {
         return next(new ErrorResponse(`Η αναφορά δεν βρέθηκε`, 404));
       }
-      await report.destroy();
 
-      res.status(200).json({ message: 'Επιτυχής διαγραφή!' });
+      if (quiz.user_id !== userId) {
+        return next(
+          new ErrorResponse(
+            `Ο χρήστης δεν έχει δικαίωμα να διαγράψει αναφορά`,
+            401
+          )
+        );
+      }
     }
+    const report = await Reports.findOne({
+      where: { user_id, quiz_id },
+    });
+    if (!report) {
+      return next(new ErrorResponse(`Η αναφορά δεν βρέθηκε`, 404));
+    }
+    await report.destroy();
+
+    res.status(200).json({ message: 'Επιτυχής διαγραφή!' });
   } else {
     return next(
       new ErrorResponse(`Ο χρήστης δεν έχει δικαίωμα να διαγράψει αναφορά`, 401)

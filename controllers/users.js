@@ -10,7 +10,9 @@ exports.getUsers = asyncHandler(async (req, res, next) => {
   const type = +req.user.type;
 
   if (type === 1) {
-    const users = await Users.findAll();
+    const users = await Users.findAll({
+      attributes: { exclude: ['refreshToken', 'resetPasswordToken'] },
+    });
     res.status(200).json({ success: true, count: users.length, data: users });
   } else {
     return next(
@@ -27,6 +29,9 @@ exports.getUser = asyncHandler(async (req, res, next) => {
   const user = await Users.findOne({
     where: { id },
     include: [{ model: Quiz }],
+    attributes: {
+      exclude: ['refreshToken', 'resetPasswordToken', 'resetPasswordExpire'],
+    },
   });
 
   if (!user) {
@@ -113,6 +118,9 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
   await user.save();
   const updatedUser = await Users.findOne({
     where: { id },
+    attributes: {
+      exclude: ['refreshToken', 'resetPasswordToken', 'resetPasswordExpire'],
+    },
   });
   res.status(201).json({
     success: true,

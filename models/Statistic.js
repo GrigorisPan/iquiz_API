@@ -29,6 +29,9 @@ const Statistic = sequelize.define('statistic_ps', {
     type: Sequelize.INTEGER(5),
     allowNull: false,
   },
+  save_flag: {
+    type: Sequelize.BOOLEAN,
+  },
 });
 
 module.exports = Statistic;

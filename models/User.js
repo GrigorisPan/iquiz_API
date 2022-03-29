@@ -6,11 +6,6 @@ const crypto = require('crypto');
 const Users = sequelize.define(
   'users_ps',
   {
-    id: {
-      type: Sequelize.INTEGER(11),
-      autoIncrement: true,
-      primaryKey: true,
-    },
     username: {
       type: Sequelize.STRING(25),
       allowNull: false,
@@ -49,6 +44,11 @@ const Users = sequelize.define(
         notNull: { msg: ' Ο χρήστης πρέπει να ανήκει σε κάτηγορία' },
         notEmpty: { msg: ' Η κατηγορία χρήστη δεν μπορεί να είναι κένη' },
       },
+    },
+    id: {
+      type: Sequelize.INTEGER(11),
+      autoIncrement: true,
+      primaryKey: true,
     },
     last_name: {
       type: Sequelize.STRING(25),
@@ -125,6 +125,23 @@ Users.prototype.getRefreshJwtToken = function () {
     .update(refreshToken)
     .digest('hex');
   return refreshToken;
+};
+
+//Reset password JWT
+Users.prototype.getResetToken = function () {
+  //Generate token
+  const resetToken = crypto.randomBytes(20).toString('hex');
+
+  //Hash token ans set resetPasswordToken field
+  this.resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  //Set expire (10 min)
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
 };
 
 //Match user entered password to hashed password in database

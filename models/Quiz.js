@@ -29,7 +29,7 @@ const Quiz = sequelize.define('quiz_ps', {
     allowNull: false,
     validate: {
       /* notEmpty: { msg: 'Παρακαλώ εισάγετε επανάληψη' }, */
-      /*   notNull: { msg: 'Παρακαλώ εισάγετε επανάληψη' }, */
+      notNull: { msg: 'Παρακαλώ εισάγετε επανάληψη' },
       isInt: { msg: 'Παρακαλώ εισάγετε επανάληψη' },
     },
   },
@@ -62,6 +62,10 @@ const Quiz = sequelize.define('quiz_ps', {
       notEmpty: { msg: 'Ο κωδικός otp δεν πρέπει να είναι κενός' },
       notNull: { msg: 'Παρακαλώ εισάγετε κωδικό otp' },
     },
+  },
+  questions_count: {
+    type: Sequelize.INTEGER(10),
+    allowNull: false,
   },
   photo: {
     type: Sequelize.STRING(300),

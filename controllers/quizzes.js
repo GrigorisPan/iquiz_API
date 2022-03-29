@@ -20,7 +20,7 @@ exports.getQuizzes = asyncHandler(async (req, res, next) => {
 
   const quizzes = await Quiz.findAll({
     where: { ...searched, status: 'public' },
-    include: [{ model: Users }],
+    include: [{ model: Users, attributes: ['username', 'email'] }],
   });
 
   res.status(200).json({ success: true, count: quizzes.length, data: quizzes });
@@ -37,7 +37,7 @@ exports.getAllQuizzes = asyncHandler(async (req, res, next) => {
   if (type === 2) {
     const quizzes = await Quiz.findAll({
       where: [{ user_id: id }],
-      include: [{ model: Users }],
+      include: [{ model: Users, attributes: ['username', 'email'] }],
     });
     res
       .status(200)
@@ -60,7 +60,7 @@ exports.getQuiz = asyncHandler(async (req, res, next) => {
   const id = +req.params.id;
   const quiz = await Quiz.findOne({
     where: { id, status: 'public' },
-    include: [{ model: Users }],
+    include: [{ model: Users, attributes: ['id', 'username', 'email'] }],
   });
   if (!quiz) {
     return next(
@@ -80,7 +80,7 @@ exports.getAllQuiz = asyncHandler(async (req, res, next) => {
   if (type === 2) {
     const quiz = await Quiz.findOne({
       where: { id, user_id },
-      include: [{ model: Users }],
+      include: [{ model: Users, attributes: ['id', 'username', 'email'] }],
     });
     if (!quiz) {
       return next(
@@ -138,8 +138,13 @@ exports.updateQuiz = asyncHandler(async (req, res, next) => {
   const type = +req.user.type;
 
   if (type === 2 || type === 1) {
-    const { title, repeat, description, time, questions_otp, photo, status } =
-      req.body;
+    const title = req.body.title;
+    const repeat = +req.body.repeat;
+    const description = req.body.description;
+    const time = +req.body.time;
+    const questions_otp = +req.body.questions_otp;
+    const photo = req.body.photo;
+    const status = req.body.status;
 
     const quiz = await Quiz.findOne({ where: { id } });
 

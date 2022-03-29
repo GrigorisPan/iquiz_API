@@ -7,6 +7,7 @@ const Users = require('../models/User');
 //  @desc     Get digital classes
 //  @route    GET /api/v1/digitalclass/
 //  @access   Private (Admin)
+
 exports.getDigitalClassListAll = asyncHandler(async (req, res, next) => {
   const type = +req.user.type;
 
@@ -35,12 +36,12 @@ exports.getDigitalClassListAll = asyncHandler(async (req, res, next) => {
 
 //  @desc     Delete digital class
 //  @route    DELETE /api/v1/digitalclass/:id
-//  @access   Private (Admin)
+//  @access   Private (Admin + Teacher)
 exports.deleteDigitalClass = asyncHandler(async (req, res, next) => {
   const id = +req.params.id;
   const type = +req.user.type;
 
-  if (type === 1) {
+  if (type === 2 || type === 1) {
     const dClass = await DigitalClass.findOne({
       where: { id },
     });
@@ -49,6 +50,14 @@ exports.deleteDigitalClass = asyncHandler(async (req, res, next) => {
         new ErrorResponse(
           `Η ψηφιακή τάξη δεν βρέθηκε με id ${req.params.id}`,
           404
+        )
+      );
+    }
+    if (type === 2 && dClass.user_id !== req.user.id) {
+      return next(
+        new ErrorResponse(
+          `Ο χρήστης δεν έχει δικαίωμα να διαγράψει την ψηφιακή τάξη με id:${req.params.id}`,
+          401
         )
       );
     }
@@ -68,6 +77,7 @@ exports.deleteDigitalClass = asyncHandler(async (req, res, next) => {
 //  @desc     Get digital classes by specific user id
 //  @route    GET /api/v1/digitalclass/user/
 //  @access   Private
+
 exports.getDigitalClassList = asyncHandler(async (req, res, next) => {
   const id = req.user.id;
   const type = +req.user.type;
@@ -115,7 +125,7 @@ exports.getDigitalClass = asyncHandler(async (req, res, next) => {
   const id = +req.params.id;
   const user_id = +req.user.id;
   const type = +req.user.type;
-  console.log(type);
+  //console.log(type);
 
   if (type === 2 || type === 1) {
     const digitalClass = await DigitalClass.findAll({ where: { id } });
@@ -175,6 +185,9 @@ exports.createDigitalClass = asyncHandler(async (req, res, next) => {
     const digitalClass = await DigitalClass.create(req.body);
     res.status(201).json({ success: true, data: digitalClass });
   } else if (type === 1) {
+    if (!req.body.user_id) {
+      return next(new ErrorResponse(`Λανθασμένα στοιχεία`, 400));
+    }
     const digitalClass = await DigitalClass.create(req.body);
     res.status(201).json({ success: true, data: digitalClass });
   } else {
@@ -222,6 +235,9 @@ exports.enrollDigitalClass = asyncHandler(async (req, res, next) => {
     const usersInClass = await InClass.create(req.body);
     res.status(201).json({ success: true, data: usersInClass });
   } else if (type === 1) {
+    if (!req.body.user_id) {
+      return next(new ErrorResponse(`Λανθασμένα στοιχεία`, 400));
+    }
     const usersInClass = await InClass.create(req.body);
     res.status(201).json({ success: true, data: usersInClass });
   } else {
