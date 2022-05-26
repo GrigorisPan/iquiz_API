@@ -31,7 +31,7 @@ exports.login = asyncHandler(async (req, res, next) => {
   if (!email || !password) {
     return next(
       new ErrorResponse(
-        'Παρακαλώ δώστε ένα email και έναν κωδικό πρόσβασης.',
+        'Παρακαλώ εισάγετε ηλεκτρονικό ταχυδρομείο και κωδικό πρόσβασης.',
         400
       )
     );
@@ -127,7 +127,12 @@ exports.forgotpassword = asyncHandler(async (req, res, next) => {
   const user = await Users.findOne({ where: { email } });
 
   if (!user) {
-    return next(new ErrorResponse('Δεν υπάρχει χρήστης με αυτό το email', 404));
+    return next(
+      new ErrorResponse(
+        'Η διεύθυνση ηλεκτρονικού ταχυδρομείου δεν βρέθηκε',
+        404
+      )
+    );
   }
 
   //Get reset token
@@ -136,7 +141,7 @@ exports.forgotpassword = asyncHandler(async (req, res, next) => {
 
   //Create reset url
   const resetUrl = `${req.protocol}://${process.env.FRONT_DOMAIN}/reset/${resetToken}`;
-  const message = `Σας ενημερώνουμε ότι έγινε αίτημα για επαναφορά κωδικού πρόσβασης στον λογαριασμό που διατηρείτε στην διεύθυνση ${process.env.FRONT_DOMAIN}. \n\nΓια την επαναφορά του κωδικού πρόσβασης, επισκεφτείτε τον σύνδεσμο που ακολουθεί ${resetUrl} \n\nΕαν το αίτημα δεν πραγματοποιήθηκε από εσάς, μπορείτε να αγνοήσετε αυτό το μήνυμα με ασφάλεια. \nΟ παραπάνω σύνδεσμος θα είναι έγκυρος για μια δέκα λεπτά.`;
+  const message = `Σας ενημερώνουμε ότι έγινε αίτημα για επαναφορά κωδικού πρόσβασης στον λογαριασμό που διατηρείτε στην διεύθυνση ${process.env.FRONT_DOMAIN}. \n\nΓια την επαναφορά του κωδικού πρόσβασης, επισκεφτείτε τον σύνδεσμο που ακολουθεί ${resetUrl} \n\nΕαν το αίτημα δεν πραγματοποιήθηκε από εσάς, μπορείτε να αγνοήσετε αυτό το μήνυμα με ασφάλεια. \nΟ παραπάνω σύνδεσμος θα είναι έγκυρος για δέκα λεπτά.`;
 
   try {
     await sendEmail({

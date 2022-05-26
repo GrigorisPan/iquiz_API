@@ -63,11 +63,16 @@ const Users = sequelize.define(
       type: Sequelize.STRING(30),
       allowNull: false,
       defaultValue: 0,
-      unique: true,
+      unique: {
+        args: true,
+        msg: 'Αυτή η διεύθυνση ηλεκτρονικού ταχυδρομείου χρησιμοποιείται ήδη',
+      },
       validate: {
-        notNull: { msg: ' Το email είναι υποχρεωτικό' },
-        notEmpty: { msg: ' Το email δεν πρέπει να είναι κενό' },
-        isEmail: { msg: ' Το email δεν είναι έγκυρο' },
+        notNull: { msg: ' Το ηλεκτρονικό ταχυδρομείο είναι υποχρεωτικό' },
+        notEmpty: {
+          msg: ' Το ηλεκτρονικό ταχυδρομείο δεν πρέπει να είναι κενό',
+        },
+        isEmail: { msg: ' Το ηλεκτρονικό ταχυδρομείο δεν είναι έγκυρο' },
       },
     },
     telephone: {
@@ -119,7 +124,7 @@ Users.prototype.getRefreshJwtToken = function () {
     }
   );
 
-  //Hash token and set to refreshToken field
+  //Hash token and set to refreshToken field DB
   this.refreshToken = crypto
     .createHash('sha256')
     .update(refreshToken)

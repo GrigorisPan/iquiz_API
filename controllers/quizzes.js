@@ -64,7 +64,7 @@ exports.getQuiz = asyncHandler(async (req, res, next) => {
   });
   if (!quiz) {
     return next(
-      new ErrorResponse(`Δεν βρέθηκες το κουίζ με id  ${req.params.id}`, 404)
+      new ErrorResponse(`Δεν βρέθηκε το κουίζ με id  ${req.params.id}`, 404)
     );
   }
   res.status(200).json({ success: true, data: quiz });
@@ -96,10 +96,7 @@ exports.getAllQuiz = asyncHandler(async (req, res, next) => {
     });
     if (!quiz) {
       return next(
-        new ErrorResponse(
-          `Το κουίζ δεν βρέθηκε με id ${req.params.id} ${req.params.id}`,
-          404
-        )
+        new ErrorResponse(`Το κουίζ δεν βρέθηκε με id ${req.params.id}`, 404)
       );
     }
     res.status(200).json({ success: true, data: quiz });

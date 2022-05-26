@@ -3,14 +3,17 @@ const Sequelize = require('sequelize');
 const sequelize = require('../config/database');
 
 const Reports = sequelize.define('reports_ps', {
+  id: {
+    type: Sequelize.INTEGER(11),
+    autoIncrement: true,
+    primaryKey: true,
+  },
   user_id: {
     type: Sequelize.INTEGER(11),
-    primaryKey: true,
     allowNull: false,
   },
   quiz_id: {
     type: Sequelize.INTEGER(11),
-    primaryKey: true,
     allowNull: false,
   },
   question: {

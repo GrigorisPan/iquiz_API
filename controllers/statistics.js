@@ -139,8 +139,8 @@ exports.getStatistics = asyncHandler(async (req, res, next) => {
         return [];
       }
 
-      const reports = await Report.findAll({
-        where: { quiz_id: quiz_id },
+      const reports = await Reports.findAll({
+        where: { quiz_id },
       });
 
       const quiz = await Quiz.findOne({

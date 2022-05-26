@@ -80,7 +80,7 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
   } else {
     return next(
       new ErrorResponse(
-        `Ο χρήστης δεν έχει δικαίωμα να ενημερώσει στοιχεία χρήστη`,
+        `Ο χρήστης δεν έχει δικαίωμα να ενημερώσει στοιχεία του χρήστη`,
         401
       )
     );

@@ -75,7 +75,7 @@ exports.getReports = asyncHandler(async (req, res, next) => {
 exports.createReport = asyncHandler(async (req, res, next) => {
   req.body.user_id = req.user.id;
   const type = +req.user.type;
-  if (type === 2 || type === 0) {
+  if (type === 0) {
     const quiz = await Quiz.findOne({ where: { id: req.body.quiz_id } });
     if (!quiz) {
       return next(
@@ -86,10 +86,10 @@ exports.createReport = asyncHandler(async (req, res, next) => {
       );
     }
 
-    const reports = await Reports.findOne({
+    const reports = await Reports.findAll({
       where: { user_id: req.body.user_id, quiz_id: req.body.quiz_id },
     });
-    if (reports) {
+    if (reports.length >= 5) {
       return next(
         new ErrorResponse(`Δεν έχεις δικαίωμα να κάνεις αναφορά.`, 401)
       );
@@ -114,15 +114,18 @@ exports.createReport = asyncHandler(async (req, res, next) => {
 exports.deleteReport = asyncHandler(async (req, res, next) => {
   const type = +req.user.type;
   const userId = +req.user.id;
+  const report_id = +req.params.id;
 
   if (type === 1 || type === 2) {
-    const ids = req.params.id.split('-');
-    const user_id = +ids[0];
-    const quiz_id = +ids[1];
-
+    const report = await Reports.findOne({
+      where: { id: report_id },
+    });
+    if (!report) {
+      return next(new ErrorResponse(`Η αναφορά δεν βρέθηκε`, 404));
+    }
     if (type === 2) {
       const quiz = await Quiz.findOne({
-        where: { id: quiz_id },
+        where: { id: report.quiz_id },
       });
       if (!quiz) {
         return next(new ErrorResponse(`Η αναφορά δεν βρέθηκε`, 404));
@@ -136,12 +139,6 @@ exports.deleteReport = asyncHandler(async (req, res, next) => {
           )
         );
       }
-    }
-    const report = await Reports.findOne({
-      where: { user_id, quiz_id },
-    });
-    if (!report) {
-      return next(new ErrorResponse(`Η αναφορά δεν βρέθηκε`, 404));
     }
     await report.destroy();
 
@@ -161,7 +158,7 @@ exports.checkReport = asyncHandler(async (req, res, next) => {
   const user_id = +req.user.id;
   const type = +req.user.type;
 
-  if (type === 0 || type === 2) {
+  if (type === 0) {
     const quiz = await Quiz.findOne({ where: { id: quiz_id } });
 
     if (!quiz) {
@@ -170,11 +167,10 @@ exports.checkReport = asyncHandler(async (req, res, next) => {
       );
     }
 
-    const reports = await Reports.findOne({
+    const reports = await Reports.findAll({
       where: { user_id, quiz_id },
     });
-    //console.log(reports);
-    if (reports !== null) {
+    if (reports.length >= 5) {
       res.status(200).json({ success: true, data: false });
     }
     res.status(200).json({ success: true, data: true });

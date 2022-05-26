@@ -12,7 +12,7 @@ const hpp = require('hpp');
 const cors = require('cors');
 const errorHandler = require('./middleware/error');
 const sequelize = require('./config/database');
-
+const fs = require('fs');
 //Import Models
 const Users = require('./models/User');
 const Quiz = require('./models/Quiz');
@@ -28,6 +28,7 @@ const InClass = require('./models/InClass');
 //quiz_ps
 Users.hasMany(Quiz, {
   foreignKey: 'user_id',
+  onDelete: 'cascade',
 });
 Quiz.belongsTo(Users, { foreignKey: 'user_id' });
 
@@ -44,16 +45,24 @@ Statistic.belongsTo(Users, { foreignKey: 'user_id' });
 Statistic.belongsTo(Quiz, { foreignKey: 'quiz_id' });
 
 //reports_ps
-Quiz.belongsToMany(Users, {
+/* Quiz.belongsToMany(Users, {
   through: 'reports_ps',
   foreignKey: 'quiz_id',
 });
 Users.belongsToMany(Quiz, {
   through: 'reports_ps',
   foreignKey: 'user_id',
+}); */
+Reports.belongsTo(Users, {
+  foreignKey: 'user_id',
+  uniqueKey: 'id',
+  onDelete: 'cascade',
 });
-Reports.belongsTo(Users, { foreignKey: 'user_id' });
-Reports.belongsTo(Quiz, { foreignKey: 'quiz_id' });
+Reports.belongsTo(Quiz, {
+  foreignKey: 'quiz_id',
+  uniqueKey: 'id',
+  onDelete: 'cascade',
+});
 
 //digital_class_ps
 Users.hasMany(DigitalClass, {
@@ -142,7 +151,7 @@ app.use(fileupload());
 
 //Set security headers
 app.use(helmet());
-
+app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
 //Prevent XSS attacks
 app.use(xss());
 
@@ -185,6 +194,14 @@ const server = app.listen(PORT, async () => {
   const result = await sequelize.sync();
   console.log('Database Connnected!'.cyan.underline.bold);
   //console.log(result);
+  const users = JSON.parse(
+    fs.readFileSync(`${__dirname}/_data/users.json`, 'utf-8')
+  );
+  try {
+    await Users.bulkCreate(users, { validate: true });
+  } catch (error) {
+    //console.log('Ο χρήστης υπάρχει ήδη στην βάση δεδομένων');
+  }
 });
 
 //Handle unhandled promise rejections
